@@ -1,53 +1,18 @@
 require("dotenv").config();
-
 const path = require("node:path");
-const fs = require("node:fs");
+const { createHash, timingSafeEqual, randomUUID } = require("node:crypto");
 const express = require("express");
 const session = require("express-session");
-const bcrypt = require("bcryptjs");
-const { DatabaseSync } = require("node:sqlite");
+const { createContentStore, PersistentSessionStore } = require("./storage");
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
 const sessionSecret = process.env.SESSION_SECRET;
-const adminEmail = process.env.ADMIN_EMAIL;
+const adminEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const adminPassword = process.env.ADMIN_PASSWORD;
-const dataDirectory = path.join(__dirname, "data");
-
-if (!sessionSecret || sessionSecret.length < 32) {
-    throw new Error("SESSION_SECRET must be set and contain at least 32 characters.");
-}
-
-if (!adminEmail || !adminPassword || adminPassword.length < 12) {
-    throw new Error("ADMIN_EMAIL and an ADMIN_PASSWORD of at least 12 characters are required.");
-}
-
-fs.mkdirSync(dataDirectory, { recursive: true });
-const database = new DatabaseSync(path.join(dataDirectory, "blog.sqlite"));
-database.exec(`
-    CREATE TABLE IF NOT EXISTS admins (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL UNIQUE,
-        password_hash TEXT NOT NULL,
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-    CREATE TABLE IF NOT EXISTS settings (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-    );
-    CREATE TABLE IF NOT EXISTS topics (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL COLLATE NOCASE UNIQUE,
-        description TEXT NOT NULL DEFAULT '',
-        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-`);
-
-const existingAdmin = database.prepare("SELECT id FROM admins WHERE email = ?").get(adminEmail);
-if (!existingAdmin) {
-    const passwordHash = bcrypt.hashSync(adminPassword, 12);
-    database.prepare("INSERT INTO admins (email, password_hash) VALUES (?, ?)").run(adminEmail, passwordHash);
-}
+if (!sessionSecret || sessionSecret.length < 32) throw new Error("SESSION_SECRET must be set and contain at least 32 characters.");
+if (!adminEmail || !adminPassword || adminPassword.length < 12) throw new Error("ADMIN_EMAIL and an ADMIN_PASSWORD of at least 12 characters are required.");
+const passwordDigest = createHash("sha256").update(adminPassword).digest();
 
 const defaultSettings = {
     name: "Dhruv Bajaj",
@@ -64,118 +29,99 @@ const defaultTopics = [
     ["life", "Life", "Routines and useful personal systems."]
 ];
 
-const settingInsert = database.prepare("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)");
-Object.entries(defaultSettings).forEach(([key, value]) => settingInsert.run(key, value));
-const topicInsert = database.prepare("INSERT OR IGNORE INTO topics (id, name, description) VALUES (?, ?, ?)");
-defaultTopics.forEach((topic) => topicInsert.run(...topic));
+const contentStore = createContentStore({
+    settings: defaultSettings,
+    topics: defaultTopics.map(([id, name, description]) => ({ id, name, description }))
+});
+const asyncRoute = handler => (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
+const fail = (message, status = 400) => Object.assign(new Error(message), { status });
 
+// Vercel terminates HTTPS at its proxy. Trust it when setting secure session cookies.
+if (process.env.VERCEL) app.set("trust proxy", 1);
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: false }));
-app.use(session({
-    name: "dhruv_blog_session",
-    secret: sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 1000 * 60 * 60 * 8
+app.use("/api", (request, response, next) => {
+    response.set("Cache-Control", "no-store");
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && request.headers.origin) {
+        try {
+            if (new URL(request.headers.origin).host !== request.get("host")) return response.status(403).json({ error: "Request origin is not allowed." });
+        } catch { return response.status(403).json({ error: "Request origin is not allowed." }); }
     }
+    next();
+});
+app.use("/api", session({
+    name: "dhruv_blog_session", secret: sessionSecret,
+    store: new PersistentSessionStore(), resave: false, saveUninitialized: false,
+    cookie: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 8 * 60 * 60 * 1000 }
 }));
 
 function requireAuth(request, response, next) {
-    if (!request.session.adminId) {
-        return response.status(401).json({ error: "Authentication required." });
-    }
+    if (request.session.adminEmail !== adminEmail) return response.status(401).json({ error: "Authentication required." });
     next();
 }
 
-function getPublicContent() {
-    const settings = Object.fromEntries(
-        database.prepare("SELECT key, value FROM settings").all().map((row) => [row.key, row.value])
-    );
-    const topics = database.prepare("SELECT id, name, description FROM topics ORDER BY created_at ASC").all();
-    return { settings, topics };
-}
-
-app.get("/api/content", (request, response) => {
-    response.json(getPublicContent());
-});
-
-app.post("/api/auth/login", (request, response) => {
+app.get("/api/content", asyncRoute(async (request, response) => response.json(await contentStore.get())));
+app.post("/api/auth/login", (request, response, next) => {
     const email = String(request.body.email || "").trim().toLowerCase();
-    const password = String(request.body.password || "");
-    const admin = database.prepare("SELECT id, email, password_hash FROM admins WHERE email = ?").get(email);
-
-    if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
-        return response.status(401).json({ error: "Invalid email or password." });
-    }
-
-    request.session.regenerate((error) => {
-        if (error) return response.status(500).json({ error: "Could not start a secure session." });
-        request.session.adminId = admin.id;
-        request.session.adminEmail = admin.email;
-        response.json({ email: admin.email });
+    const digest = createHash("sha256").update(String(request.body.password || "")).digest();
+    if (!timingSafeEqual(digest, passwordDigest) || email !== adminEmail) return response.status(401).json({ error: "Invalid email or password." });
+    request.session.regenerate(error => {
+        if (error) return next(error);
+        request.session.adminEmail = adminEmail;
+        request.session.save(error => error ? next(error) : response.json({ email: adminEmail }));
     });
 });
-
-app.post("/api/auth/logout", requireAuth, (request, response) => {
-    request.session.destroy((error) => {
-        if (error) return response.status(500).json({ error: "Could not end the session." });
-        response.clearCookie("dhruv_blog_session");
+app.post("/api/auth/logout", requireAuth, (request, response, next) => {
+    request.session.destroy(error => {
+        if (error) return next(error);
+        response.clearCookie("dhruv_blog_session", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" });
         response.status(204).end();
     });
 });
-
-app.get("/api/auth/me", requireAuth, (request, response) => {
-    response.json({ email: request.session.adminEmail });
-});
-
-app.put("/api/admin/settings", requireAuth, (request, response) => {
-    const allowedKeys = Object.keys(defaultSettings);
-    const update = database.prepare("INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value");
-    try {
-        database.exec("BEGIN");
-        allowedKeys.forEach((key) => {
-            const value = String(request.body[key] || "").trim();
-            if (!value || value.length > 400) throw new Error(`Invalid value for ${key}.`);
-            update.run(key, value);
-        });
-        database.exec("COMMIT");
-        response.json({ settings: getPublicContent().settings });
-    } catch (error) {
-        database.exec("ROLLBACK");
-        response.status(400).json({ error: error.message });
+app.get("/api/auth/me", requireAuth, (request, response) => response.json({ email: adminEmail }));
+app.put("/api/admin/settings", requireAuth, asyncRoute(async (request, response) => {
+    const settings = {};
+    for (const key of Object.keys(defaultSettings)) {
+        const value = String(request.body[key] || "").trim();
+        if (!value || value.length > 400) throw fail(`Invalid value for ${key}.`);
+        settings[key] = value;
     }
-});
-
-app.post("/api/admin/topics", requireAuth, (request, response) => {
+    await contentStore.update(content => { content.settings = settings; });
+    response.json({ settings });
+}));
+app.post("/api/admin/topics", requireAuth, asyncRoute(async (request, response) => {
     const name = String(request.body.name || "").trim();
     const description = String(request.body.description || "").trim();
-    const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
-
-    if (!name || name.length > 30 || description.length > 90) {
-        return response.status(400).json({ error: "Topic name or description is invalid." });
-    }
-
-    try {
-        database.prepare("INSERT INTO topics (id, name, description) VALUES (?, ?, ?)").run(id, name, description);
-        response.status(201).json({ topic: { id, name, description } });
-    } catch (error) {
-        if (error.code === "SQLITE_CONSTRAINT_UNIQUE") return response.status(409).json({ error: "That topic already exists." });
-        response.status(500).json({ error: "Could not create topic." });
-    }
-});
-
-app.delete("/api/admin/topics/:id", requireAuth, (request, response) => {
-    const result = database.prepare("DELETE FROM topics WHERE id = ?").run(request.params.id);
-    if (!result.changes) return response.status(404).json({ error: "Topic not found." });
+    if (!name || name.length > 30 || description.length > 90) throw fail("Topic name or description is invalid.");
+    const topic = { id: `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${randomUUID()}`, name, description };
+    await contentStore.update(content => {
+        if (content.topics.some(item => item.name.toLowerCase() === name.toLowerCase())) throw fail("That topic already exists.", 409);
+        content.topics.push(topic);
+    });
+    response.status(201).json({ topic });
+}));
+app.delete("/api/admin/topics/:id", requireAuth, asyncRoute(async (request, response) => {
+    await contentStore.update(content => {
+        const index = content.topics.findIndex(topic => topic.id === request.params.id);
+        if (index < 0) throw fail("Topic not found.", 404);
+        content.topics.splice(index, 1);
+    });
     response.status(204).end();
+}));
+app.use("/api", (request, response) => response.status(404).json({ error: "Not found." }));
+// Serve only browser assets; source files, credentials and local storage stay private.
+const assets = new Set(["index.html", "admin.html", "admin.js", "script.js", "style.css"]);
+app.get("/", (request, response) => response.sendFile(path.join(__dirname, "index.html")));
+app.get("/admin", (request, response) => response.sendFile(path.join(__dirname, "admin.html")));
+app.get("/:asset", (request, response, next) => {
+    if (!assets.has(request.params.asset)) return next();
+    response.sendFile(path.join(__dirname, request.params.asset));
 });
-
-app.use(express.static(__dirname));
-
-app.listen(port, () => {
-    console.log(`Blog server running at http://localhost:${port}`);
+app.use((error, request, response, next) => {
+    if (response.headersSent) return next(error);
+    const status = error.status || 500;
+    if (status >= 500) console.error("Request failed:", error.name, error.message);
+    response.status(status).json({ error: status >= 500 ? "Could not complete the request. Please try again." : error.message });
 });
+if (require.main === module) app.listen(port, () => console.log(`Blog server running at http://localhost:${port}`));
+module.exports = app;

@@ -2,16 +2,20 @@
   "name": "dhruv-personal-blog",
   "version": "1.0.0",
   "private": true,
-  "description": "Personal blog with a protected Express and SQLite admin API.",
+  "description": "Personal blog with a protected Express admin API and durable private Vercel Blob storage.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "@vercel/blob": "^2.9.0",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1"
+  },
+  "overrides": {
+    "zod": "^4.6.7"
   }
 }
