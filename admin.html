@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Local admin dashboard for the Dhruv Bajaj personal blog.">
+    <title>Admin | Dhruv Bajaj</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-page">
+    <header class="admin-header">
+        <a class="brand" href="index.html" aria-label="Back to public site">DB</a>
+        <div class="admin-header-copy">
+            <p class="kicker">Local dashboard</p>
+            <h1>Admin workspace</h1>
+        </div>
+        <a class="admin-site-link" href="index.html">View site →</a>
+    </header>
+
+    <section class="admin-login admin-card" id="adminLogin">
+        <p class="kicker">Protected area</p>
+        <h2>Sign in to edit</h2>
+        <form id="loginForm" class="admin-form">
+            <label>
+                Admin email
+                <input id="loginEmail" type="email" autocomplete="username" required>
+            </label>
+            <label>
+                Password
+                <input id="loginPassword" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="admin-primary-button" type="submit">Sign in</button>
+            <p class="admin-status" id="loginStatus" role="alert"></p>
+        </form>
+    </section>
+
+    <main class="admin-layout" id="adminContent" hidden>
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="kicker">Site content</p>
+                    <h2>Edit your information</h2>
+                </div>
+                <span class="admin-badge">Saved in this browser</span>
+            </div>
+            <button class="admin-logout" id="logoutButton" type="button">Sign out</button>
+
+            <form id="siteSettingsForm" class="admin-form">
+                <div class="admin-form-grid">
+                    <label>
+                        Display name
+                        <input id="adminName" name="name" type="text" maxlength="60" required>
+                    </label>
+                    <label>
+                        Hero eyebrow
+                        <input id="adminKicker" name="kicker" type="text" maxlength="60" required>
+                    </label>
+                </div>
+                <label>
+                    Hero headline
+                    <textarea id="adminHeroTitle" name="heroTitle" rows="3" maxlength="180" required></textarea>
+                </label>
+                <label>
+                    Hero description
+                    <textarea id="adminHeroDescription" name="heroDescription" rows="3" maxlength="240" required></textarea>
+                </label>
+                <label>
+                    About headline
+                    <textarea id="adminAboutTitle" name="aboutTitle" rows="3" maxlength="180" required></textarea>
+                </label>
+                <label>
+                    About description
+                    <textarea id="adminAboutDescription" name="aboutDescription" rows="4" maxlength="320" required></textarea>
+                </label>
+                <div class="admin-actions">
+                    <button class="admin-primary-button" type="submit">Save site information</button>
+                    <button class="admin-secondary-button" id="resetSettings" type="button">Reset defaults</button>
+                </div>
+                <p class="admin-status" id="settingsStatus" role="status"></p>
+            </form>
+        </section>
+
+        <section class="admin-card">
+            <div class="admin-card-heading">
+                <div>
+                    <p class="kicker">Content organization</p>
+                    <h2>Manage topics</h2>
+                </div>
+                <span class="admin-count" id="topicCount">0 topics</span>
+            </div>
+
+            <form id="topicForm" class="admin-form topic-form">
+                <label>
+                    New topic name
+                    <input id="topicName" name="topicName" type="text" maxlength="30" placeholder="e.g. Design" required>
+                </label>
+                <label>
+                    Short description
+                    <input id="topicDescription" name="topicDescription" type="text" maxlength="90" placeholder="What belongs here?">
+                </label>
+                <button class="admin-primary-button" type="submit">Add topic</button>
+                <p class="admin-status" id="topicStatus" role="status"></p>
+            </form>
+
+            <div class="topic-manager" id="topicManager"></div>
+        </section>
+
+        <aside class="admin-help">
+            <p class="kicker">How this works</p>
+            <h2>Make a change, then open the public page.</h2>
+            <p>Your content is stored in SQLite and protected by a server-side session. Keep your environment credentials private before deploying.</p>
+            <a href="index.html#posts">Preview topics →</a>
+        </aside>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
