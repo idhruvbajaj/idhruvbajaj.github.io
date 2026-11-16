@@ -28,6 +28,7 @@ async function request(url, method = 'GET', body, headers = {}) {
 test('homepage, authentication, durable edits, validation and logout', async () => {
     assert.equal((await request('/')).status, 200);
     assert.equal((await request('/admin')).status, 200);
+    for (const asset of ['/index.html', '/admin.html', '/style.css', '/script.js', '/admin.js']) assert.equal((await request(asset)).status, 200);
     for (const file of ['/server.js', '/storage.js', '/package.json', '/.env', '/data/blog/content.json']) assert.equal((await request(file)).status, 404);
     assert.equal((await request('/api/admin/settings', 'PUT', {})).status, 401);
     assert.equal((await request('/api/auth/login', 'POST', { email: 'admin@example.test', password: 'wrong' })).status, 401);

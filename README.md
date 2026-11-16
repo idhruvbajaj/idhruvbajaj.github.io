@@ -1,6 +1,6 @@
 # Dhruv's personal blog
 
-Express serves the existing site and protected admin API. Production content and admin sessions live in a **private Vercel Blob store**, so they survive cold starts and redeployments without writing into Vercel's read-only application directory.
+Browser HTML, CSS and JavaScript live in `public/`, served by the Vercel CDN in production and Express locally. Express handles the protected admin API. Production content and admin sessions live in a **private Vercel Blob store**, so they survive cold starts and redeployments without writing into Vercel's read-only application directory.
 
 ## Configuration
 

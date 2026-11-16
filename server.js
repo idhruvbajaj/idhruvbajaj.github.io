@@ -109,14 +109,9 @@ app.delete("/api/admin/topics/:id", requireAuth, asyncRoute(async (request, resp
     response.status(204).end();
 }));
 app.use("/api", (request, response) => response.status(404).json({ error: "Not found." }));
-// Serve only browser assets; source files, credentials and local storage stay private.
-const assets = new Set(["index.html", "admin.html", "admin.js", "script.js", "style.css"]);
-app.get("/", (request, response) => response.sendFile(path.join(__dirname, "index.html")));
-app.get("/admin", (request, response) => response.sendFile(path.join(__dirname, "admin.html")));
-app.get("/:asset", (request, response, next) => {
-    if (!assets.has(request.params.asset)) return next();
-    response.sendFile(path.join(__dirname, request.params.asset));
-});
+// Vercel serves public/ from its CDN. Express serves the same files locally.
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/admin", (request, response) => response.redirect("/admin.html"));
 app.use((error, request, response, next) => {
     if (response.headersSent) return next(error);
     const status = error.status || 500;
