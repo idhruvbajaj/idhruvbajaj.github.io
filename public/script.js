@@ -30,7 +30,10 @@ async function loadPublicContent() {
     try {
         let content;
         try {
-            const response = await fetch("/api/content");
+            const apiUrl = window.location.hostname === "idhruvbajaj.github.io"
+                ? "https://idhruvbajaj-github-io.vercel.app/api/content"
+                : "/api/content";
+            const response = await fetch(apiUrl);
             if (!response.ok) throw new Error("Content API unavailable.");
             content = await response.json();
         } catch {

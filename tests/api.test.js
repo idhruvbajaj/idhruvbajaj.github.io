@@ -38,7 +38,10 @@ test('homepage, authentication, durable edits, validation and logout', async () 
     assert.match(login.headers.get('set-cookie'), /HttpOnly/);
     assert.equal((await request('/api/auth/me')).status, 200);
     assert.equal((await request('/api/admin/topics', 'POST', { name: 'Blocked' }, { Origin: 'https://untrusted.example' })).status, 403);
-    const original = await (await request('/api/content')).json();
+    const publicResponse = await request('/api/content');
+    assert.equal(publicResponse.headers.get('access-control-allow-origin'), 'https://idhruvbajaj.github.io');
+    assert.equal((await request('/api/auth/me')).headers.get('access-control-allow-origin'), null);
+    const original = await publicResponse.json();
     const settings = { ...original.settings, heroTitle: 'A saved title' };
     assert.equal((await request('/api/admin/settings', 'PUT', settings)).status, 200);
     assert.equal((await request('/api/admin/settings', 'PUT', { ...settings, name: '' })).status, 400);

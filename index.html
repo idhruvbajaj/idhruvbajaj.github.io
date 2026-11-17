@@ -1,16 +1,339 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dhruv Bajaj — Redirecting</title>
-  <link rel="canonical" href="https://idhruvbajaj-github-io.vercel.app/">
-  <meta http-equiv="refresh" content="0; url=https://idhruvbajaj-github-io.vercel.app/">
-  <script>
-    window.location.replace("https://idhruvbajaj-github-io.vercel.app/" + window.location.search + window.location.hash);
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dhruv Bajaj | Personal Blog</title>
+    <link rel="canonical" href="https://idhruvbajaj.github.io/">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <p>Opening Dhruv's blog. <a href="https://idhruvbajaj-github-io.vercel.app/">Continue to the website</a>.</p>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <header class="site-header">
+        <a class="brand" href="#home" aria-label="Dhruv Bajaj blog home">DB</a>
+
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false">
+            <span></span>
+            <span></span>
+        </button>
+
+        <nav class="site-nav" id="siteNav" aria-label="Primary navigation">
+            <a href="#posts">Posts</a>
+            <a href="#projects">Projects</a>
+            <a href="#about">About</a>
+            <a href="#notes">Notes</a>
+            <a href="#newsletter">Newsletter</a>
+            <a href="#contact">Contact</a>
+            <a href="https://idhruvbajaj-github-io.vercel.app/admin.html">Admin</a>
+        </nav>
+
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+            <span aria-hidden="true">☾</span>
+        </button>
+
+        <button class="command-button" id="commandButton" type="button" aria-label="Open command menu">
+            <span aria-hidden="true">⌘</span><span class="command-label">K</span>
+        </button>
+    </header>
+
+    <main id="home">
+        <section class="hero panel dark-panel">
+            <div class="hero-copy">
+                <p class="kicker" id="siteName">Dhruv Bajaj</p>
+                <h1 id="heroTitle">Ideas, projects, and notes in one clean place.</h1>
+                <p id="heroDescription">A personal blog for code, college life, routines, and the details I want to remember.</p>
+                <div class="link-row">
+                    <a href="#posts">Read the blog</a>
+                    <a href="#about">Know me</a>
+                </div>
+                <div class="hero-stats" aria-label="Blog highlights">
+                    <span><strong>04</strong> essays</span>
+                    <span><strong>03</strong> topics</span>
+                    <span><strong>01</strong> curious mind</span>
+                </div>
+            </div>
+            <div class="hero-visual" aria-hidden="true">
+                <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80" alt="">
+            </div>
+        </section>
+
+        <section class="panel light-panel latest-panel" id="posts">
+            <div class="section-copy">
+                <p class="kicker">Latest post</p>
+                <h2>What I learned from rebuilding my own website.</h2>
+                <p>A practical note on structure, polish, and why small interface decisions can make a page feel personal.</p>
+                <div class="link-row">
+                    <a href="#contact">Discuss this post</a>
+                    <a href="#notes">View notes</a>
+                </div>
+                <div class="post-meta">
+                    <span>8 min read</span>
+                    <button class="save-button" type="button" data-save="rebuilding" aria-pressed="false">♡ Save post</button>
+                </div>
+            </div>
+            <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="Laptop with code on screen">
+        </section>
+
+        <section class="post-showcase" aria-label="Blog posts">
+            <div class="section-heading">
+                <h2>Explore by topic.</h2>
+                <div class="filter-row" aria-label="Filter posts by category">
+                    <button class="filter-chip active" type="button" data-filter="all">All</button>
+                    <button class="filter-chip" type="button" data-filter="code">Code</button>
+                    <button class="filter-chip" type="button" data-filter="college">College</button>
+                    <button class="filter-chip" type="button" data-filter="life">Life</button>
+                </div>
+            </div>
+            <div class="post-tools">
+                <label class="search-field">
+                    <span class="sr-only">Search posts</span>
+                    <input id="postSearch" type="search" placeholder="Search posts..." autocomplete="off">
+                    <span aria-hidden="true">⌕</span>
+                </label>
+                <p id="postCount" class="post-count" role="status">4 posts</p>
+                <label class="sort-field">
+                    <span class="sr-only">Sort posts</span>
+                    <select id="postSort">
+                        <option value="featured">Featured</option>
+                        <option value="shortest">Shortest read</option>
+                        <option value="longest">Longest read</option>
+                    </select>
+                </label>
+            </div>
+
+            <div class="tile-grid" id="postGrid">
+                <article class="post-card dark-tile" data-category="code" data-title="JavaScript patterns I finally understand">
+                    <div class="post-content">
+                        <p class="kicker">Code</p>
+                        <h3>JavaScript patterns I finally understand.</h3>
+                        <p>Event handling, state, and DOM updates explained through small front-end examples.</p>
+                        <a href="#contact">Talk about it</a>
+                        <button class="text-button read-post" type="button" data-read="javascript-patterns">Read article →</button>
+                        <div class="post-meta"><span>6 min read</span><button class="save-button" type="button" data-save="javascript-patterns" aria-pressed="false">♡ Save</button></div>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80" alt="Code editor on a screen">
+                </article>
+
+                <article class="post-card light-tile" data-category="college" data-title="Keeping class projects calm and finished">
+                    <div class="post-content">
+                        <p class="kicker">College</p>
+                        <h3>Keeping class projects calm and finished.</h3>
+                        <p>Breaking assignments into visible pieces while leaving time for real polish.</p>
+                        <a href="#contact">Talk about it</a>
+                        <button class="text-button read-post" type="button" data-read="class-projects">Read article →</button>
+                        <div class="post-meta"><span>5 min read</span><button class="save-button" type="button" data-save="class-projects" aria-pressed="false">♡ Save</button></div>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80" alt="Books stacked in a library">
+                </article>
+
+                <article class="post-card light-tile" data-category="life" data-title="Building better daily routines">
+                    <div class="post-content">
+                        <p class="kicker">Life</p>
+                        <h3>Building better daily routines.</h3>
+                        <p>A gentle audit of sleep, study blocks, screen time, and habits that actually last.</p>
+                        <a href="#contact">Talk about it</a>
+                        <button class="text-button read-post" type="button" data-read="daily-routines">Read article →</button>
+                        <div class="post-meta"><span>4 min read</span><button class="save-button" type="button" data-save="daily-routines" aria-pressed="false">♡ Save</button></div>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80" alt="Desk with notebook and coffee">
+                </article>
+
+                <article class="post-card blue-tile" data-category="code" data-title="Making a page feel fast and focused">
+                    <div class="post-content">
+                        <p class="kicker">Code</p>
+                        <h3>Making a page feel fast and focused.</h3>
+                        <p>Layout choices, spacing, and simple interactions that help a blog feel premium.</p>
+                        <a href="#contact">Talk about it</a>
+                        <button class="text-button read-post" type="button" data-read="fast-focused">Read article →</button>
+                        <div class="post-meta"><span>7 min read</span><button class="save-button" type="button" data-save="fast-focused" aria-pressed="false">♡ Save</button></div>
+                    </div>
+                    <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Workspace with laptop">
+                </article>
+            </div>
+            <p class="empty-state" id="emptyState" hidden>No posts match that search yet. Try a different keyword.</p>
+        </section>
+
+        <section class="platform-panel" id="projects">
+            <div class="section-heading compact-heading">
+                <div>
+                    <p class="kicker">Selected work</p>
+                    <h2>Things I’m building.</h2>
+                </div>
+                <p class="section-intro">Small experiments, useful systems, and the lessons that come from shipping them.</p>
+            </div>
+            <div class="project-grid">
+                <article class="project-card">
+                    <div class="project-icon">01</div>
+                    <p class="kicker">Interface</p>
+                    <h3>Focusboard</h3>
+                    <p>A calmer home for tasks, study sessions, and the next useful action.</p>
+                    <button class="text-button project-details" type="button" data-project="Focusboard">View project details →</button>
+                </article>
+                <article class="project-card project-card-dark">
+                    <div class="project-icon">02</div>
+                    <p class="kicker">Writing</p>
+                    <h3>Field notes</h3>
+                    <p>A tiny publishing system for capturing ideas before they become forgotten tabs.</p>
+                    <button class="text-button project-details" type="button" data-project="Field notes">View project details →</button>
+                </article>
+                <article class="project-card">
+                    <div class="project-icon">03</div>
+                    <p class="kicker">Learning</p>
+                    <h3>Web lab</h3>
+                    <p>Experiments in motion, accessibility, performance, and thoughtful frontend details.</p>
+                    <button class="text-button project-details" type="button" data-project="Web lab">View project details →</button>
+                </article>
+            </div>
+        </section>
+
+        <section class="panel about-panel" id="about">
+            <div class="section-copy">
+                <p class="kicker">About</p>
+                <h2 id="aboutTitle">I like making ideas easier to see, use, and remember.</h2>
+                <p id="aboutDescription">I am a student exploring front-end engineering, design, and the habit of writing things down before they disappear.</p>
+            </div>
+            <div class="interest-strip" aria-label="Current interests">
+                <span>Clean interfaces</span>
+                <span>JavaScript projects</span>
+                <span>College productivity</span>
+                <span>Personal systems</span>
+            </div>
+        </section>
+
+        <section class="notes-panel" id="notes">
+            <h2>Short notes.</h2>
+            <div class="notes-list">
+                <article class="note-card">
+                    <span>01</span>
+                    <p>Good design is the quiet removal of confusion.</p>
+                    <button class="copy-note" type="button">Copy note</button>
+                </article>
+                <article class="note-card">
+                    <span>02</span>
+                    <p>The best study session is the one I can repeat tomorrow.</p>
+                    <button class="copy-note" type="button">Copy note</button>
+                </article>
+                <article class="note-card">
+                    <span>03</span>
+                    <p>Build small, finish honestly, then improve with evidence.</p>
+                    <button class="copy-note" type="button">Copy note</button>
+                </article>
+            </div>
+        </section>
+
+        <section class="newsletter-panel" id="newsletter">
+            <div>
+                <p class="kicker">Occasional signal</p>
+                <h2>A thoughtful note, now and then.</h2>
+                <p>No noise. Just new essays, useful links, and small things worth keeping.</p>
+            </div>
+            <form class="newsletter-form" id="newsletterForm">
+                <label>
+                    <span class="sr-only">Email address</span>
+                    <input type="email" name="newsletterEmail" placeholder="Your email address" autocomplete="email" required>
+                </label>
+                <button type="submit">Subscribe</button>
+                <p class="form-status" id="newsletterStatus" role="status"></p>
+            </form>
+        </section>
+
+        <section class="contact-panel" id="contact">
+            <div class="section-copy">
+                <p class="kicker">Contact</p>
+                <h2>Say hello.</h2>
+                <p>Send a quick note about a project, blog idea, or something interesting you found.</p>
+            </div>
+
+            <form class="contact-form" id="contactForm">
+                <label>
+                    Name
+                    <input type="text" name="name" placeholder="Your name" autocomplete="name" required>
+                </label>
+                <label>
+                    Email
+                    <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                </label>
+                <label>
+                    What are you reaching out about?
+                    <select name="topic">
+                        <option>Project collaboration</option>
+                        <option>Blog idea</option>
+                        <option>Just saying hello</option>
+                    </select>
+                </label>
+                <label>
+                    Message
+                    <textarea name="message" rows="4" placeholder="Write your message" required></textarea>
+                </label>
+                <button type="submit">Send message</button>
+                <p class="form-status" id="formStatus" role="status"></p>
+            </form>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Copyright 2026 Dhruv Bajaj.</p>
+        <div>
+            <span class="saved-summary" id="savedSummary">0 saved posts</span>
+            <a href="#projects">Projects</a>
+            <a href="#home">Back to top</a>
+        </div>
+    </footer>
+
+    <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top">↑</button>
+
+    <div class="reading-modal" id="readingModal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <article class="modal-card reading-card" role="dialog" aria-modal="true" aria-labelledby="readingTitle">
+            <button class="modal-close" type="button" data-close-modal aria-label="Close reading view">×</button>
+            <p class="kicker" id="readingCategory">Code · 6 min read</p>
+            <h2 id="readingTitle">JavaScript patterns I finally understand.</h2>
+            <p class="reading-lede" id="readingLede"></p>
+            <div class="reading-body" id="readingBody"></div>
+            <div class="reading-footer">
+                <button class="save-button" id="readingSave" type="button" data-save="javascript-patterns" aria-pressed="false">♡ Save post</button>
+                <button class="text-button" data-close-modal type="button">Close reading view</button>
+            </div>
+        </article>
+    </div>
+
+    <div class="project-modal" id="projectModal" hidden>
+        <div class="modal-backdrop" data-close-project></div>
+        <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="projectTitle">
+            <button class="modal-close" type="button" data-close-project aria-label="Close project details">×</button>
+            <p class="kicker">Project detail</p>
+            <h2 id="projectTitle">Focusboard</h2>
+            <p id="projectDescription">A small experiment in making progress visible without making the interface loud.</p>
+            <div class="project-facts">
+                <span>Role <strong>Design + build</strong></span>
+                <span>Status <strong>In progress</strong></span>
+                <span>Focus <strong>Clarity</strong></span>
+            </div>
+        </article>
+    </div>
+
+    <div class="command-palette" id="commandPalette" hidden>
+        <div class="modal-backdrop" data-close-command></div>
+        <div class="palette-card" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
+            <div class="palette-heading">
+                <h2 id="commandTitle">Quick actions</h2>
+                <button class="modal-close" type="button" data-close-command aria-label="Close command menu">×</button>
+            </div>
+            <input id="commandSearch" type="search" placeholder="Search actions..." autocomplete="off">
+            <div class="command-list" id="commandList">
+                <button type="button" data-command="posts">Browse posts <kbd>P</kbd></button>
+                <button type="button" data-command="projects">View projects <kbd>J</kbd></button>
+                <button type="button" data-command="theme">Toggle theme <kbd>T</kbd></button>
+                <button type="button" data-command="newsletter">Join newsletter <kbd>N</kbd></button>
+                <button type="button" data-command="top">Back to top <kbd>G</kbd></button>
+            </div>
+            <p class="palette-hint">Press <kbd>Esc</kbd> to close · <kbd>⌘ K</kbd> to open</p>
+        </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="script.js"></script>
 </body>
 </html>

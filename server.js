@@ -60,7 +60,11 @@ function requireAuth(request, response, next) {
     next();
 }
 
-app.get("/api/content", asyncRoute(async (request, response) => response.json(await contentStore.get())));
+// Only public content is readable from the GitHub Pages frontend; admin endpoints stay same-origin.
+app.get("/api/content", (request, response, next) => {
+    response.set("Access-Control-Allow-Origin", "https://idhruvbajaj.github.io");
+    next();
+}, asyncRoute(async (request, response) => response.json(await contentStore.get())));
 app.post("/api/auth/login", (request, response, next) => {
     const email = String(request.body.email || "").trim().toLowerCase();
     const digest = createHash("sha256").update(String(request.body.password || "")).digest();
