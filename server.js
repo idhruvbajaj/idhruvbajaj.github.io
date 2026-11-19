@@ -10,9 +10,9 @@ const port = Number(process.env.PORT || 3000);
 const sessionSecret = process.env.SESSION_SECRET;
 const adminEmail = String(process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 const adminPassword = process.env.ADMIN_PASSWORD;
-if (!sessionSecret || sessionSecret.length < 32) throw new Error("SESSION_SECRET must be set and contain at least 32 characters.");
-if (!adminEmail || !adminPassword || adminPassword.length < 12) throw new Error("ADMIN_EMAIL and an ADMIN_PASSWORD of at least 12 characters are required.");
-const passwordDigest = createHash("sha256").update(adminPassword).digest();
+const adminConfigured = sessionSecret?.length >= 32 && adminEmail && adminPassword?.length >= 12;
+const passwordDigest = adminConfigured ? createHash("sha256").update(adminPassword).digest() : null;
+if (!adminConfigured) console.warn("Admin sign-in is disabled. Check SESSION_SECRET, ADMIN_EMAIL and ADMIN_PASSWORD.");
 
 const defaultSettings = {
     name: "Dhruv Bajaj",
@@ -49,11 +49,14 @@ app.use("/api", (request, response, next) => {
     }
     next();
 });
-app.use("/api", session({
+const adminSession = adminConfigured ? session({
     name: "dhruv_blog_session", secret: sessionSecret,
     store: new PersistentSessionStore(), resave: false, saveUninitialized: false,
     cookie: { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 8 * 60 * 60 * 1000 }
-}));
+}) : (request, response) => {
+    response.status(503).json({ error: "Admin sign-in is unavailable. Check the server configuration." });
+};
+app.use(["/api/auth", "/api/admin"], adminSession);
 
 function requireAuth(request, response, next) {
     if (request.session.adminEmail !== adminEmail) return response.status(401).json({ error: "Authentication required." });

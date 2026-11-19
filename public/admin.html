@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Admin dashboard for the Dhruv Bajaj personal blog.">
+    <meta name="robots" content="noindex">
     <title>Admin | Dhruv Bajaj</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,7 +11,7 @@
     <header class="admin-header">
         <a class="admin-brand" href="index.html">Dhruv Bajaj</a>
         <div class="admin-actions">
-            <a class="admin-site-link" href="index.html">View site <span aria-hidden="true">↗</span></a>
+            <a class="admin-site-link" href="index.html" target="_blank" rel="noopener" aria-label="View site (opens in a new tab)">View site <span aria-hidden="true">↗</span></a>
             <button class="admin-secondary-button" id="logoutButton" type="button" hidden>Sign out</button>
         </div>
     </header>
@@ -20,57 +20,61 @@
         <h1>Blog dashboard</h1>
         <p class="admin-status" id="logoutStatus" role="alert"></p>
 
+        <noscript><p>Enable JavaScript to sign in and edit the blog.</p></noscript>
         <section class="admin-login admin-card" id="adminLogin" aria-labelledby="loginTitle">
             <h2 id="loginTitle">Sign in</h2>
             <p>Use your admin account to update the blog.</p>
-            <form id="loginForm" class="admin-form">
+            <form id="loginForm" class="admin-form" method="post" action="/api/auth/login">
                 <label>
                     Email address
-                    <input id="loginEmail" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+                    <input id="loginEmail" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
                 </label>
-                <label>
-                    Password
-                    <input id="loginPassword" type="password" autocomplete="current-password" required>
-                </label>
-                <button class="admin-primary-button" type="submit">Sign in</button>
+                <label for="loginPassword">Password</label>
+                <div class="admin-password-control">
+                    <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+                    <button class="admin-secondary-button" id="passwordToggle" type="button" aria-controls="loginPassword" disabled>Show password</button>
+                </div>
+                <button class="admin-primary-button" type="submit" disabled>Sign in</button>
                 <p class="admin-status" id="loginStatus" role="alert"></p>
             </form>
         </section>
 
+        <section class="admin-login admin-card" id="dashboardLoad" aria-labelledby="dashboardLoadTitle" hidden>
+            <h2 id="dashboardLoadTitle">Load site content</h2>
+            <p class="admin-status" id="dashboardStatus" role="status"></p>
+            <button class="admin-secondary-button" id="dashboardRetry" type="button" hidden>Try again</button>
+        </section>
+
         <div class="admin-layout" id="adminContent" hidden>
             <section class="admin-card">
-                <div class="admin-card-heading">
-                    <div>
-                        <h2>Site information</h2>
-                    </div>
-                </div>
+                <h2 class="admin-card-heading" id="settingsTitle" tabindex="-1">Site information</h2>
 
                 <form id="siteSettingsForm" class="admin-form">
                     <div class="admin-form-grid">
                         <label>
                             Display name
-                            <input id="adminName" name="name" type="text" maxlength="60" required>
+                            <input id="adminName" name="name" type="text" maxlength="400" required>
                         </label>
                         <label>
                             Hero label
-                            <input id="adminKicker" name="kicker" type="text" maxlength="60" required>
+                            <input id="adminKicker" name="kicker" type="text" maxlength="400" required>
                         </label>
                     </div>
                     <label>
                         Hero headline
-                        <textarea id="adminHeroTitle" name="heroTitle" rows="3" maxlength="180" required></textarea>
+                        <textarea id="adminHeroTitle" name="heroTitle" rows="3" maxlength="400" required></textarea>
                     </label>
                     <label>
                         Hero description
-                        <textarea id="adminHeroDescription" name="heroDescription" rows="3" maxlength="240" required></textarea>
+                        <textarea id="adminHeroDescription" name="heroDescription" rows="3" maxlength="400" required></textarea>
                     </label>
                     <label>
                         About headline
-                        <textarea id="adminAboutTitle" name="aboutTitle" rows="3" maxlength="180" required></textarea>
+                        <textarea id="adminAboutTitle" name="aboutTitle" rows="3" maxlength="400" required></textarea>
                     </label>
                     <label>
                         About description
-                        <textarea id="adminAboutDescription" name="aboutDescription" rows="4" maxlength="320" required></textarea>
+                        <textarea id="adminAboutDescription" name="aboutDescription" rows="4" maxlength="400" required></textarea>
                     </label>
                     <div class="admin-actions">
                         <button class="admin-primary-button" type="submit">Save site information</button>
@@ -87,11 +91,12 @@
                     </div>
                     <span class="admin-count" id="topicCount">0 topics</span>
                 </div>
+                <p class="admin-topic-help" id="topicHelp">Topics you add appear as interests in the About section. Article categories follow the published posts.</p>
 
                 <form id="topicForm" class="admin-form topic-form">
                     <label>
                         New topic name
-                        <input id="topicName" name="topicName" type="text" maxlength="30" placeholder="e.g. Design" required>
+                        <input id="topicName" name="topicName" type="text" maxlength="30" placeholder="e.g. Design" aria-describedby="topicHelp" required>
                     </label>
                     <label>
                         Short description
@@ -101,7 +106,8 @@
                     <p class="admin-status" id="topicStatus" role="status"></p>
                 </form>
 
-                <div class="topic-manager" id="topicManager"></div>
+                <p class="admin-status" id="topicsEmpty" hidden>No topics yet.</p>
+                <div class="topic-manager" id="topicManager" role="list" aria-label="Current topics"></div>
             </section>
 
         </div>

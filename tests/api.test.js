@@ -56,12 +56,45 @@ test('homepage, authentication, durable edits, validation and logout', async () 
     assert.equal(created.status, 201);
     const { topic } = await created.json();
     assert.equal((await request('/api/admin/topics', 'POST', { name: 'PERSISTENCE TEST' })).status, 409);
+    const concurrentTopics = ['Concurrent topic A', 'Concurrent topic B'];
+    const concurrentWrites = await Promise.all([
+        request('/api/admin/settings', 'PUT', { ...settings, heroTitle: 'Updated alongside topics' }),
+        ...concurrentTopics.map(name => request('/api/admin/topics', 'POST', { name }))
+    ]);
+    assert.deepEqual(concurrentWrites.map(response => response.status), [200, 201, 201]);
     const persisted = require('../storage').createContentStore({});
-    assert.equal((await persisted.get()).settings.heroTitle, 'A saved title');
-    assert.ok((await persisted.get()).topics.some(item => item.id === topic.id));
+    const savedContent = await persisted.get();
+    assert.equal(savedContent.settings.heroTitle, 'Updated alongside topics');
+    assert.ok(savedContent.topics.some(item => item.id === topic.id));
+    assert.ok(concurrentTopics.every(name => savedContent.topics.some(item => item.name === name)));
     assert.equal((await request(`/api/admin/topics/${topic.id}`, 'DELETE')).status, 204);
     assert.equal((await request(`/api/admin/topics/${topic.id}`, 'DELETE')).status, 404);
     assert.equal((await request('/api/auth/logout', 'POST')).status, 204);
     assert.equal((await request('/api/auth/me')).status, 401);
     assert.equal((await request('/api/admin/settings', 'PUT', settings)).status, 401);
+});
+
+test('missing admin configuration disables sign-in and keeps public content available', async t => {
+    const modulePath = require.resolve('../server');
+    const originalModule = require.cache[modulePath];
+    const originalPassword = process.env.ADMIN_PASSWORD;
+    let app;
+    try {
+        delete process.env.ADMIN_PASSWORD;
+        delete require.cache[modulePath];
+        app = require('../server');
+    } finally {
+        process.env.ADMIN_PASSWORD = originalPassword;
+        require.cache[modulePath] = originalModule;
+    }
+
+    const unconfiguredServer = app.listen(0, '127.0.0.1');
+    t.after(() => new Promise(resolve => unconfiguredServer.close(resolve)));
+    await new Promise(resolve => unconfiguredServer.once('listening', resolve));
+    const base = `http://127.0.0.1:${unconfiguredServer.address().port}`;
+    assert.equal((await fetch(`${base}/api/content`)).status, 200);
+    const auth = await fetch(`${base}/api/auth/me`);
+    assert.equal(auth.status, 503);
+    assert.equal((await auth.json()).error, 'Admin sign-in is unavailable. Check the server configuration.');
+    assert.equal((await fetch(`${base}/api/admin/settings`, { method: 'PUT' })).status, 503);
 });

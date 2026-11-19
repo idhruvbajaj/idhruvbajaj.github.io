@@ -1,3 +1,4 @@
+const siteHeader = document.querySelector(".site-header");
 const menuToggle = document.getElementById("menuToggle");
 const siteNav = document.getElementById("siteNav");
 const progressBar = document.getElementById("progressBar");
@@ -10,10 +11,12 @@ const savedSummary = document.getElementById("savedSummary");
 const saveButtons = document.querySelectorAll(".save-button");
 const postSort = document.getElementById("postSort");
 const postGrid = document.getElementById("postGrid");
-const backToTop = document.getElementById("backToTop");
 const readingModal = document.getElementById("readingModal");
 const projectModal = document.getElementById("projectModal");
 const commandPalette = document.getElementById("commandPalette");
+const commandSearch = document.getElementById("commandSearch");
+const commandEmpty = document.getElementById("commandEmpty");
+const commandButtons = [...commandPalette.querySelectorAll("[data-command]")];
 const toast = document.getElementById("toast");
 const siteTopics = document.querySelector(".filter-row");
 const interestStrip = document.querySelector(".interest-strip");
@@ -59,8 +62,9 @@ async function loadPublicContent() {
 
         const settings = content.settings;
         if (settings) {
+            if (settings.name) document.title = `${settings.name} | Personal Blog`;
             const contentMap = {
-                name: "siteName",
+                name: "brandName",
                 kicker: "siteName",
                 heroTitle: "heroTitle",
                 heroDescription: "heroDescription",
@@ -74,20 +78,17 @@ async function loadPublicContent() {
         }
 
         const topics = content.topics;
-        if (Array.isArray(topics) && siteTopics) {
+        if (Array.isArray(topics)) {
+            const publishedInterests = new Set([...interestStrip.children].map(item => item.textContent.toLowerCase()));
             topics.forEach((topic) => {
-                if ([...siteTopics.children].some(chip => chip.dataset.filter === topic.id)) return;
-                const button = document.createElement("button");
-                button.className = "filter-chip";
-                button.type = "button";
-                button.dataset.filter = topic.id;
-                button.setAttribute("aria-pressed", "false");
-                button.textContent = topic.name;
-                siteTopics.appendChild(button);
-
+                if (typeof topic?.name !== "string") return;
+                const topicName = topic.name.trim();
+                const key = topicName.toLowerCase();
+                if (!key || publishedInterests.has(key)) return;
                 const interest = document.createElement("span");
-                interest.textContent = topic.name;
-                interestStrip?.appendChild(interest);
+                interest.textContent = topicName;
+                interestStrip.appendChild(interest);
+                publishedInterests.add(key);
             });
         }
     } catch (error) {
@@ -150,12 +151,15 @@ function setMenu(open) {
 
 menuToggle.addEventListener("click", () => setMenu(!siteNav.classList.contains("open")));
 siteNav.addEventListener("click", (event) => {
-    if (event.target.closest("a")) setMenu(false);
+    const link = event.target.closest("a");
+    if (!link || !siteNav.classList.contains("open")) return;
+    setMenu(false);
+    document.querySelector(link.hash)?.focus({ preventScroll: true });
 });
 document.addEventListener("click", (event) => {
     if (!event.target.closest(".site-header")) setMenu(false);
 });
-matchMedia("(max-width: 860px)").addEventListener("change", () => setMenu(false));
+matchMedia("(max-width: 48rem)").addEventListener?.("change", () => setMenu(false));
 
 function applyPostFilters() {
     const query = postSearch.value.trim().toLowerCase();
@@ -163,10 +167,11 @@ function applyPostFilters() {
 
     postCards.forEach((card) => {
         const matchesFilter = activeFilter === "all" || card.dataset.category === activeFilter;
-        const matchesSearch = !query || card.querySelector(".post-content").textContent.toLowerCase().includes(query);
+        const summary = card.querySelector(".post-content p:not(.kicker)").textContent;
+        const matchesSearch = !query || `${card.dataset.title} ${summary}`.toLowerCase().includes(query);
         const shouldShow = matchesFilter && matchesSearch;
 
-        card.classList.toggle("hidden", !shouldShow);
+        card.hidden = !shouldShow;
         if (shouldShow) visibleCount += 1;
     });
 
@@ -233,7 +238,7 @@ function setTheme(isDark) {
 }
 
 const colorPreference = matchMedia("(prefers-color-scheme: dark)");
-colorPreference.addEventListener("change", () => {
+colorPreference.addEventListener?.("change", () => {
     if (readPreference("darkMode") === null) setTheme(colorPreference.matches);
 });
 themeToggle.addEventListener("click", () => {
@@ -258,6 +263,10 @@ function openModal(modal, trigger) {
     if (dialogs.some(dialog => dialog.open)) return;
     setMenu(false);
     trigger?.focus({ preventScroll: true });
+    if (typeof modal.showModal !== "function") {
+        showToast("This browser can’t open the reading and project views. Try a current browser.");
+        return;
+    }
     modal.showModal();
     document.body.classList.add("modal-open");
     modal.querySelector(".modal-card, .palette-card").scrollTop = 0;
@@ -276,7 +285,12 @@ document.querySelectorAll(".read-post").forEach((button) => {
         document.getElementById("readingCategory").textContent = article.category;
         document.getElementById("readingTitle").textContent = article.title;
         document.getElementById("readingLede").textContent = article.lede;
-        document.getElementById("readingBody").innerHTML = article.body.map((paragraph) => `<p>${paragraph}</p>`).join("");
+        const paragraphs = article.body.map((text) => {
+            const paragraph = document.createElement("p");
+            paragraph.textContent = text;
+            return paragraph;
+        });
+        document.getElementById("readingBody").replaceChildren(...paragraphs);
         document.getElementById("readingSave").dataset.save = button.dataset.read;
         updateSavedState();
         openModal(readingModal, button);
@@ -328,12 +342,18 @@ document.querySelectorAll(".copy-note").forEach((button) => {
     });
 });
 
-backToTop.addEventListener("click", () => {
-    document.querySelector(".site-header .brand").focus({ preventScroll: true });
-    window.scrollTo({ top: 0, behavior: motionQuery.matches ? "auto" : "smooth" });
-});
+function filterCommands() {
+    const query = commandSearch.value.trim().toLowerCase();
+    commandButtons.forEach((button) => {
+        button.hidden = !button.textContent.toLowerCase().includes(query);
+    });
+    commandEmpty.hidden = commandButtons.some(button => !button.hidden);
+}
 
 function openCommandPalette(event) {
+    if (commandPalette.open) return;
+    commandSearch.value = "";
+    filterCommands();
     openModal(commandPalette, event?.currentTarget);
 }
 
@@ -357,25 +377,18 @@ function runCommand(command) {
 }
 
 document.getElementById("commandButton").addEventListener("click", openCommandPalette);
-document.querySelectorAll("[data-command]").forEach((button) => {
+commandButtons.forEach((button) => {
     button.addEventListener("click", () => runCommand(button.dataset.command));
 });
-document.getElementById("commandSearch").addEventListener("input", (event) => {
-    const query = event.target.value.trim().toLowerCase();
-    document.querySelectorAll("[data-command]").forEach((button) => {
-        button.hidden = !button.textContent.toLowerCase().includes(query);
-    });
+commandSearch.addEventListener("input", filterCommands);
+commandSearch.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const visibleCommands = commandButtons.filter(button => !button.hidden);
+    if (visibleCommands.length === 1) visibleCommands[0].click();
 });
 
-function updateScrollControls() {
-    updateProgressBar();
-    const showBackToTop = window.scrollY > 600;
-    backToTop.hidden = !showBackToTop;
-    backToTop.classList.toggle("visible", showBackToTop);
-}
-
-window.addEventListener("scroll", updateScrollControls, { passive: true });
-window.addEventListener("resize", updateScrollControls, { passive: true });
+window.addEventListener("scroll", updateProgressBar, { passive: true });
+window.addEventListener("resize", updateProgressBar, { passive: true });
 document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         if (dialogs.some(dialog => dialog.open && dialog !== commandPalette)) return;
@@ -391,4 +404,12 @@ postCards.forEach((card, index) => card.dataset.order = String(index));
 sortPosts();
 updateSavedState();
 applyPostFilters();
-updateScrollControls();
+updateProgressBar();
+document.documentElement.classList.add("has-js");
+
+function measureHeader() {
+    document.body.style.setProperty("--header-height", `${siteHeader.offsetHeight}px`);
+}
+measureHeader();
+if ("ResizeObserver" in window) new ResizeObserver(measureHeader).observe(siteHeader);
+else window.addEventListener("resize", measureHeader, { passive: true });
