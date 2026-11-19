@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
-    { "source": "/", "destination": "https://idhruvbajaj.github.io/", "permanent": true },
-    { "source": "/index.html", "destination": "https://idhruvbajaj.github.io/", "permanent": true }
+    { "source": "/", "destination": "https://idhruvbajaj.is-a.dev/", "permanent": true },
+    { "source": "/index.html", "destination": "https://idhruvbajaj.is-a.dev/", "permanent": true }
   ]
 }

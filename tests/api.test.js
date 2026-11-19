@@ -39,7 +39,13 @@ test('homepage, authentication, durable edits, validation and logout', async () 
     assert.equal((await request('/api/auth/me')).status, 200);
     assert.equal((await request('/api/admin/topics', 'POST', { name: 'Blocked' }, { Origin: 'https://untrusted.example' })).status, 403);
     const publicResponse = await request('/api/content');
-    assert.equal(publicResponse.headers.get('access-control-allow-origin'), 'https://idhruvbajaj.github.io');
+    for (const origin of ['https://idhruvbajaj.github.io', 'https://idhruvbajaj.is-a.dev', 'http://idhruvbajaj.is-a.dev']) {
+        const response = await request('/api/content', 'GET', undefined, { Origin: origin });
+        assert.equal(response.headers.get('access-control-allow-origin'), origin);
+        assert.match(response.headers.get('vary'), /Origin/i);
+    }
+    const untrusted = await request('/api/content', 'GET', undefined, { Origin: 'https://untrusted.example' });
+    assert.equal(untrusted.headers.get('access-control-allow-origin'), null);
     assert.equal((await request('/api/auth/me')).headers.get('access-control-allow-origin'), null);
     const original = await publicResponse.json();
     const settings = { ...original.settings, heroTitle: 'A saved title' };

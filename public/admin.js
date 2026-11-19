@@ -11,6 +11,8 @@ const loginPanel = document.getElementById("adminLogin");
 const adminContent = document.getElementById("adminContent");
 const loginForm = document.getElementById("loginForm");
 const loginStatus = document.getElementById("loginStatus");
+const logoutButton = document.getElementById("logoutButton");
+const logoutStatus = document.getElementById("logoutStatus");
 const settingsForm = document.getElementById("siteSettingsForm");
 const topicForm = document.getElementById("topicForm");
 const topicManager = document.getElementById("topicManager");
@@ -19,23 +21,36 @@ const settingsStatus = document.getElementById("settingsStatus");
 const topicStatus = document.getElementById("topicStatus");
 
 async function request(url, options = {}) {
-    const response = await fetch(url, {
-        ...options,
-        headers: { "Content-Type": "application/json", ...(options.headers || {}) }
-    });
-    const data = response.status === 204 ? null : await response.json();
-    if (!response.ok) throw new Error(data?.error || "Request failed.");
+    let response;
+    try {
+        response = await fetch(url, {
+            ...options,
+            headers: { "Content-Type": "application/json", ...(options.headers || {}) }
+        });
+    } catch {
+        throw new Error("Couldn’t connect. Check your connection and try again.");
+    }
+
+    if (response.status === 204) return null;
+    const data = response.headers.get("content-type")?.includes("application/json")
+        ? await response.json().catch(() => null)
+        : null;
+    if (!response.ok || !data) {
+        throw new Error(data?.error || "The admin service is temporarily unavailable. Try again in a moment.");
+    }
     return data;
 }
 
 function showAdmin() {
     loginPanel.hidden = true;
     adminContent.hidden = false;
+    logoutButton.hidden = false;
 }
 
 function showLogin() {
     loginPanel.hidden = false;
     adminContent.hidden = true;
+    logoutButton.hidden = true;
 }
 
 function fillSettingsForm(settings) {
@@ -92,6 +107,8 @@ function escapeHtml(value) {
 
 loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const button = event.submitter || loginForm.querySelector("button");
+    button.disabled = true;
     loginStatus.textContent = "Signing in…";
     try {
         await request("/api/auth/login", {
@@ -103,9 +120,13 @@ loginForm.addEventListener("submit", async (event) => {
         });
         await refreshContent();
         showAdmin();
+        loginForm.reset();
         loginStatus.textContent = "";
+        document.getElementById("adminName").focus({ preventScroll: true });
     } catch (error) {
         loginStatus.textContent = error.message;
+    } finally {
+        button.disabled = false;
     }
 });
 
@@ -142,10 +163,19 @@ topicForm.addEventListener("submit", async (event) => {
     }
 });
 
-document.getElementById("logoutButton").addEventListener("click", async () => {
-    await request("/api/auth/logout", { method: "POST" });
-    showLogin();
-    loginStatus.textContent = "You have been signed out.";
+logoutButton.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    logoutStatus.textContent = "";
+    try {
+        await request("/api/auth/logout", { method: "POST" });
+        showLogin();
+        loginStatus.textContent = "You have been signed out.";
+        document.getElementById("loginEmail").focus();
+    } catch (error) {
+        logoutStatus.textContent = error.message;
+    } finally {
+        logoutButton.disabled = false;
+    }
 });
 
 document.getElementById("resetSettings").addEventListener("click", async () => {

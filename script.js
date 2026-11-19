@@ -1,10 +1,7 @@
 const menuToggle = document.getElementById("menuToggle");
 const siteNav = document.getElementById("siteNav");
 const progressBar = document.getElementById("progressBar");
-const filterButtons = document.querySelectorAll(".filter-chip");
 const postCards = document.querySelectorAll(".post-card");
-const contactForm = document.getElementById("contactForm");
-const formStatus = document.getElementById("formStatus");
 const postSearch = document.getElementById("postSearch");
 const postCount = document.getElementById("postCount");
 const emptyState = document.getElementById("emptyState");
@@ -18,19 +15,36 @@ const readingModal = document.getElementById("readingModal");
 const projectModal = document.getElementById("projectModal");
 const commandPalette = document.getElementById("commandPalette");
 const toast = document.getElementById("toast");
-const newsletterForm = document.getElementById("newsletterForm");
-const newsletterStatus = document.getElementById("newsletterStatus");
 const siteTopics = document.querySelector(".filter-row");
 const interestStrip = document.querySelector(".interest-strip");
 let activeFilter = "all";
-let savedPosts = JSON.parse(localStorage.getItem("savedPosts") || "[]");
+function readPreference(key, fallback = null) {
+    try {
+        return JSON.parse(localStorage.getItem(key)) ?? fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function writePreference(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+        // Keep the current session usable if browser storage is unavailable.
+    }
+}
+
+const storedPosts = readPreference("savedPosts", []);
+let savedPosts = Array.isArray(storedPosts)
+    ? [...new Set(storedPosts.filter(id => typeof id === "string"))]
+    : [];
 let toastTimer;
 
 async function loadPublicContent() {
     try {
         let content;
         try {
-            const apiUrl = window.location.hostname === "idhruvbajaj.github.io"
+            const apiUrl = ["idhruvbajaj.github.io", "idhruvbajaj.is-a.dev"].includes(location.hostname)
                 ? "https://idhruvbajaj-github-io.vercel.app/api/content"
                 : "/api/content";
             const response = await fetch(apiUrl);
@@ -38,8 +52,8 @@ async function loadPublicContent() {
             content = await response.json();
         } catch {
             content = {
-                settings: JSON.parse(localStorage.getItem("siteSettings") || "null"),
-                topics: JSON.parse(localStorage.getItem("siteTopics") || "null")
+                settings: readPreference("siteSettings"),
+                topics: readPreference("siteTopics")
             };
         }
 
@@ -62,11 +76,12 @@ async function loadPublicContent() {
         const topics = content.topics;
         if (Array.isArray(topics) && siteTopics) {
             topics.forEach((topic) => {
-                if (siteTopics.querySelector(`[data-filter="${topic.id}"]`)) return;
+                if ([...siteTopics.children].some(chip => chip.dataset.filter === topic.id)) return;
                 const button = document.createElement("button");
                 button.className = "filter-chip";
                 button.type = "button";
                 button.dataset.filter = topic.id;
+                button.setAttribute("aria-pressed", "false");
                 button.textContent = topic.name;
                 siteTopics.appendChild(button);
 
@@ -124,20 +139,23 @@ function updateProgressBar() {
     const scrollTop = window.scrollY;
     const pageHeight = document.documentElement.scrollHeight - window.innerHeight;
     const progress = pageHeight > 0 ? (scrollTop / pageHeight) * 100 : 0;
-    progressBar.style.width = `${Math.min(progress, 100)}%`;
+    progressBar.style.width = `${Math.max(0, Math.min(progress, 100))}%`;
 }
 
-menuToggle.addEventListener("click", () => {
-    const isOpen = siteNav.classList.toggle("open");
-    menuToggle.setAttribute("aria-expanded", String(isOpen));
-});
+function setMenu(open) {
+    siteNav.classList.toggle("open", open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+    menuToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+}
 
+menuToggle.addEventListener("click", () => setMenu(!siteNav.classList.contains("open")));
 siteNav.addEventListener("click", (event) => {
-    if (event.target instanceof HTMLAnchorElement) {
-        siteNav.classList.remove("open");
-        menuToggle.setAttribute("aria-expanded", "false");
-    }
+    if (event.target.closest("a")) setMenu(false);
 });
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".site-header")) setMenu(false);
+});
+matchMedia("(max-width: 860px)").addEventListener("change", () => setMenu(false));
 
 function applyPostFilters() {
     const query = postSearch.value.trim().toLowerCase();
@@ -145,7 +163,7 @@ function applyPostFilters() {
 
     postCards.forEach((card) => {
         const matchesFilter = activeFilter === "all" || card.dataset.category === activeFilter;
-        const matchesSearch = !query || card.dataset.title.toLowerCase().includes(query);
+        const matchesSearch = !query || card.querySelector(".post-content").textContent.toLowerCase().includes(query);
         const shouldShow = matchesFilter && matchesSearch;
 
         card.classList.toggle("hidden", !shouldShow);
@@ -170,21 +188,12 @@ function sortPosts() {
     cards.forEach((card) => postGrid.appendChild(card));
 }
 
-filterButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-        filterButtons.forEach((chip) => {
-            chip.classList.toggle("active", chip === button);
-        });
-        activeFilter = button.dataset.filter;
-        applyPostFilters();
-    });
-});
-
 siteTopics.addEventListener("click", (event) => {
     const button = event.target.closest(".filter-chip");
     if (!button || !siteTopics.contains(button)) return;
     siteTopics.querySelectorAll(".filter-chip").forEach((chip) => {
         chip.classList.toggle("active", chip === button);
+        chip.setAttribute("aria-pressed", String(chip === button));
     });
     activeFilter = button.dataset.filter;
     applyPostFilters();
@@ -203,7 +212,6 @@ function updateSavedState() {
         button.textContent = isSaved ? "♥ Saved" : "♡ Save";
     });
     savedSummary.textContent = `${savedPosts.length} saved ${savedPosts.length === 1 ? "post" : "posts"}`;
-    localStorage.setItem("savedPosts", JSON.stringify(savedPosts));
 }
 
 saveButtons.forEach((button) => {
@@ -212,6 +220,7 @@ saveButtons.forEach((button) => {
         savedPosts = savedPosts.includes(postId)
             ? savedPosts.filter((id) => id !== postId)
             : [...savedPosts, postId];
+        writePreference("savedPosts", savedPosts);
         updateSavedState();
     });
 });
@@ -221,60 +230,19 @@ function setTheme(isDark) {
     themeToggle.setAttribute("aria-pressed", String(isDark));
     themeToggle.setAttribute("aria-label", isDark ? "Switch to light mode" : "Switch to dark mode");
     themeToggle.querySelector("span").textContent = isDark ? "☀" : "☾";
-    localStorage.setItem("darkMode", String(isDark));
 }
 
+const colorPreference = matchMedia("(prefers-color-scheme: dark)");
+colorPreference.addEventListener("change", () => {
+    if (readPreference("darkMode") === null) setTheme(colorPreference.matches);
+});
 themeToggle.addEventListener("click", () => {
-    setTheme(!document.body.classList.contains("dark-mode"));
+    const isDark = !document.body.classList.contains("dark-mode");
+    setTheme(isDark);
+    writePreference("darkMode", isDark);
 });
 
-const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-const hero = document.querySelector(".hero");
-
-function resetDepth() {
-    hero?.style.removeProperty("--hero-x");
-    hero?.style.removeProperty("--hero-y");
-    hero?.style.removeProperty("--visual-x");
-    hero?.style.removeProperty("--visual-y");
-    hero?.style.removeProperty("--orb-x");
-    hero?.style.removeProperty("--orb-y");
-}
-
-if (hero && !motionQuery.matches) {
-    hero.addEventListener("pointermove", (event) => {
-        const bounds = hero.getBoundingClientRect();
-        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-        hero.style.setProperty("--hero-x", `${x * -14}px`);
-        hero.style.setProperty("--hero-y", `${y * -10}px`);
-        hero.style.setProperty("--visual-x", `${x * 18}px`);
-        hero.style.setProperty("--visual-y", `${y * 12}px`);
-        hero.style.setProperty("--orb-x", `${x * 90}px`);
-        hero.style.setProperty("--orb-y", `${y * 58}px`);
-        hero.style.setProperty("--ring-rotation", `${x * 18}deg`);
-    });
-    hero.addEventListener("pointerleave", resetDepth);
-}
-
-const revealItems = document.querySelectorAll(
-    ".latest-panel, .post-showcase, .platform-panel, .about-panel, .notes-panel, .newsletter-panel, .contact-panel"
-);
-
-if (motionQuery.matches) {
-    revealItems.forEach((item) => item.classList.add("is-visible"));
-} else {
-    revealItems.forEach((item) => item.classList.add("reveal"));
-    const revealObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-        });
-    }, { threshold: 0.12 });
-    revealItems.forEach((item) => revealObserver.observe(item));
-}
-
-window.addEventListener("blur", resetDepth);
+const motionQuery = matchMedia("(prefers-reduced-motion: reduce)");
 loadPublicContent();
 
 function showToast(message) {
@@ -284,17 +252,22 @@ function showToast(message) {
     toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
 }
 
-function openModal(modal) {
-    modal.hidden = false;
+const dialogs = [readingModal, projectModal, commandPalette];
+
+function openModal(modal, trigger) {
+    if (dialogs.some(dialog => dialog.open)) return;
+    setMenu(false);
+    trigger?.focus({ preventScroll: true });
+    modal.showModal();
     document.body.classList.add("modal-open");
-    const closeButton = modal.querySelector(".modal-close");
-    closeButton?.focus();
+    modal.querySelector(".modal-card, .palette-card").scrollTop = 0;
 }
 
-function closeModal(modal) {
-    modal.hidden = true;
-    document.body.classList.remove("modal-open");
-}
+dialogs.forEach((modal) => {
+    modal.addEventListener("close", () => {
+        document.body.classList.toggle("modal-open", dialogs.some(dialog => dialog.open));
+    });
+});
 
 document.querySelectorAll(".read-post").forEach((button) => {
     button.addEventListener("click", () => {
@@ -306,7 +279,7 @@ document.querySelectorAll(".read-post").forEach((button) => {
         document.getElementById("readingBody").innerHTML = article.body.map((paragraph) => `<p>${paragraph}</p>`).join("");
         document.getElementById("readingSave").dataset.save = button.dataset.read;
         updateSavedState();
-        openModal(readingModal);
+        openModal(readingModal, button);
     });
 });
 
@@ -319,18 +292,18 @@ document.querySelectorAll(".project-details").forEach((button) => {
         };
         document.getElementById("projectTitle").textContent = button.dataset.project;
         document.getElementById("projectDescription").textContent = descriptions[button.dataset.project];
-        openModal(projectModal);
+        openModal(projectModal, button);
     });
 });
 
 document.querySelectorAll("[data-close-modal]").forEach((element) => {
-    element.addEventListener("click", () => closeModal(readingModal));
+    element.addEventListener("click", () => readingModal.close());
 });
 document.querySelectorAll("[data-close-project]").forEach((element) => {
-    element.addEventListener("click", () => closeModal(projectModal));
+    element.addEventListener("click", () => projectModal.close());
 });
 document.querySelectorAll("[data-close-command]").forEach((element) => {
-    element.addEventListener("click", () => closeModal(commandPalette));
+    element.addEventListener("click", () => commandPalette.close());
 });
 
 document.querySelectorAll(".copy-note").forEach((button) => {
@@ -340,16 +313,28 @@ document.querySelectorAll(".copy-note").forEach((button) => {
             await navigator.clipboard.writeText(note);
             showToast("Note copied to your clipboard.");
         } catch {
-            showToast("Copy is unavailable in this browser.");
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(button.closest(".note-card").querySelector("p"));
+            selection.removeAllRanges();
+            selection.addRange(range);
+            if (document.execCommand?.("copy")) {
+                selection.removeAllRanges();
+                showToast("Note copied to your clipboard.");
+            } else {
+                showToast("Note selected. Use your device’s Copy command.");
+            }
         }
     });
 });
 
-backToTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+backToTop.addEventListener("click", () => {
+    document.querySelector(".site-header .brand").focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: motionQuery.matches ? "auto" : "smooth" });
+});
 
-function openCommandPalette() {
-    openModal(commandPalette);
-    document.getElementById("commandSearch").focus();
+function openCommandPalette(event) {
+    openModal(commandPalette, event?.currentTarget);
 }
 
 function runCommand(command) {
@@ -360,11 +345,14 @@ function runCommand(command) {
         top: "#home"
     };
     if (command === "theme") {
+        commandPalette.close();
         themeToggle.click();
         showToast("Theme updated.");
     } else if (targets[command]) {
-        closeModal(commandPalette);
-        document.querySelector(targets[command]).scrollIntoView({ behavior: "smooth" });
+        commandPalette.close();
+        const target = document.querySelector(targets[command]);
+        target.focus({ preventScroll: true });
+        target.scrollIntoView({ behavior: motionQuery.matches ? "auto" : "smooth" });
     }
 }
 
@@ -373,56 +361,34 @@ document.querySelectorAll("[data-command]").forEach((button) => {
     button.addEventListener("click", () => runCommand(button.dataset.command));
 });
 document.getElementById("commandSearch").addEventListener("input", (event) => {
-    const query = event.target.value.toLowerCase();
+    const query = event.target.value.trim().toLowerCase();
     document.querySelectorAll("[data-command]").forEach((button) => {
         button.hidden = !button.textContent.toLowerCase().includes(query);
     });
 });
 
-newsletterForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    newsletterStatus.textContent = "You’re on the list. Thanks for joining.";
-    newsletterForm.reset();
-    showToast("Newsletter signup saved locally.");
-});
+function updateScrollControls() {
+    updateProgressBar();
+    const showBackToTop = window.scrollY > 600;
+    backToTop.hidden = !showBackToTop;
+    backToTop.classList.toggle("visible", showBackToTop);
+}
 
-contactForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-
-    const formData = new FormData(contactForm);
-    const name = String(formData.get("name") || "").trim();
-    const email = String(formData.get("email") || "").trim();
-    const message = String(formData.get("message") || "").trim();
-
-    if (!name || !email || !message) {
-        formStatus.textContent = "Please complete your name, email, and message.";
-        return;
-    }
-
-    const topic = String(formData.get("topic") || "your note").toLowerCase();
-    formStatus.textContent = `Thanks, ${name}. I’ll get back to you about ${topic}.`;
-    contactForm.reset();
-});
-
-window.addEventListener("scroll", updateProgressBar, { passive: true });
-window.addEventListener("scroll", () => backToTop.classList.toggle("visible", window.scrollY > 600), { passive: true });
+window.addEventListener("scroll", updateScrollControls, { passive: true });
+window.addEventListener("resize", updateScrollControls, { passive: true });
 document.addEventListener("keydown", (event) => {
-    const key = event.key.toLowerCase();
-    if ((event.metaKey || event.ctrlKey) && key === "k") {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        if (dialogs.some(dialog => dialog.open && dialog !== commandPalette)) return;
         event.preventDefault();
         openCommandPalette();
-    } else if (event.key === "Escape") {
-        [readingModal, projectModal, commandPalette].forEach((modal) => {
-            if (!modal.hidden) closeModal(modal);
-        });
-    } else if (!event.target.matches("input, textarea, select")) {
-        const shortcuts = { p: "posts", j: "projects", t: "theme", n: "newsletter", g: "top" };
-        if (shortcuts[key]) runCommand(shortcuts[key]);
+    } else if (event.key === "Escape" && siteNav.classList.contains("open")) {
+        setMenu(false);
+        menuToggle.focus();
     }
 });
-setTheme(localStorage.getItem("darkMode") === "true");
+setTheme(readPreference("darkMode", colorPreference.matches));
 postCards.forEach((card, index) => card.dataset.order = String(index));
 sortPosts();
 updateSavedState();
 applyPostFilters();
-updateProgressBar();
+updateScrollControls();

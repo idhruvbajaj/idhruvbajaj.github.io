@@ -62,7 +62,11 @@ function requireAuth(request, response, next) {
 
 // Only public content is readable from the GitHub Pages frontend; admin endpoints stay same-origin.
 app.get("/api/content", (request, response, next) => {
-    response.set("Access-Control-Allow-Origin", "https://idhruvbajaj.github.io");
+    const origin = request.get("Origin");
+    response.vary("Origin");
+    if (["https://idhruvbajaj.github.io", "https://idhruvbajaj.is-a.dev", "http://idhruvbajaj.is-a.dev"].includes(origin)) {
+        response.set("Access-Control-Allow-Origin", origin);
+    }
     next();
 }, asyncRoute(async (request, response) => response.json(await contentStore.get())));
 app.post("/api/auth/login", (request, response, next) => {
