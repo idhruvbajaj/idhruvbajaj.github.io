@@ -2,18 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dhruv Bajaj | Personal Blog</title>
-    <link rel="canonical" href="https://idhruvbajaj.github.io/">
+    <link rel="canonical" href="https://idhruvbajaj.is-a.dev/">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="blog-page">
+    <a class="skip-link" href="#home">Skip to content</a>
     <div class="progress-bar" id="progressBar"></div>
 
     <header class="site-header">
-        <a class="brand" href="#home" aria-label="Dhruv Bajaj blog home">DB</a>
+        <a class="brand" href="#home" aria-label="Dhruv Bajaj blog home">DB<span>Dhruv Bajaj</span></a>
 
-        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-controls="siteNav" aria-expanded="false">
             <span></span>
             <span></span>
         </button>
@@ -32,12 +33,12 @@
             <span aria-hidden="true">☾</span>
         </button>
 
-        <button class="command-button" id="commandButton" type="button" aria-label="Open command menu">
+        <button class="command-button" id="commandButton" type="button" aria-haspopup="dialog" aria-label="Open command menu">
             <span aria-hidden="true">⌘</span><span class="command-label">K</span>
         </button>
     </header>
 
-    <main id="home">
+    <main id="home" tabindex="-1">
         <section class="hero panel dark-panel">
             <div class="hero-copy">
                 <p class="kicker" id="siteName">Dhruv Bajaj</p>
@@ -45,44 +46,38 @@
                 <p id="heroDescription">A personal blog for code, college life, routines, and the details I want to remember.</p>
                 <div class="link-row">
                     <a href="#posts">Read the blog</a>
-                    <a href="#about">Know me</a>
-                </div>
-                <div class="hero-stats" aria-label="Blog highlights">
-                    <span><strong>04</strong> essays</span>
-                    <span><strong>03</strong> topics</span>
-                    <span><strong>01</strong> curious mind</span>
+                    <a href="#about">About me</a>
                 </div>
             </div>
             <div class="hero-visual" aria-hidden="true">
-                <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80" alt="">
+                <img fetchpriority="high" decoding="async" src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80" alt="">
             </div>
         </section>
 
-        <section class="panel light-panel latest-panel" id="posts">
+        <section class="panel light-panel latest-panel" id="posts" tabindex="-1">
             <div class="section-copy">
-                <p class="kicker">Latest post</p>
+                <p class="kicker">Featured preview</p>
                 <h2>What I learned from rebuilding my own website.</h2>
                 <p>A practical note on structure, polish, and why small interface decisions can make a page feel personal.</p>
                 <div class="link-row">
-                    <a href="#contact">Discuss this post</a>
+                    <a href="#articles">Browse articles</a>
                     <a href="#notes">View notes</a>
                 </div>
                 <div class="post-meta">
-                    <span>8 min read</span>
                     <button class="save-button" type="button" data-save="rebuilding" aria-pressed="false">♡ Save post</button>
                 </div>
             </div>
-            <img src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="Laptop with code on screen">
+            <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1400&q=80" alt="Laptop with code on screen">
         </section>
 
-        <section class="post-showcase" aria-label="Blog posts">
+        <section class="post-showcase" id="articles" aria-label="Blog posts">
             <div class="section-heading">
                 <h2>Explore by topic.</h2>
                 <div class="filter-row" aria-label="Filter posts by category">
-                    <button class="filter-chip active" type="button" data-filter="all">All</button>
-                    <button class="filter-chip" type="button" data-filter="code">Code</button>
-                    <button class="filter-chip" type="button" data-filter="college">College</button>
-                    <button class="filter-chip" type="button" data-filter="life">Life</button>
+                    <button class="filter-chip active" type="button" aria-pressed="true" data-filter="all">All</button>
+                    <button class="filter-chip" type="button" aria-pressed="false" data-filter="code">Code</button>
+                    <button class="filter-chip" type="button" aria-pressed="false" data-filter="college">College</button>
+                    <button class="filter-chip" type="button" aria-pressed="false" data-filter="life">Life</button>
                 </div>
             </div>
             <div class="post-tools">
@@ -108,11 +103,10 @@
                         <p class="kicker">Code</p>
                         <h3>JavaScript patterns I finally understand.</h3>
                         <p>Event handling, state, and DOM updates explained through small front-end examples.</p>
-                        <a href="#contact">Talk about it</a>
                         <button class="text-button read-post" type="button" data-read="javascript-patterns">Read article →</button>
                         <div class="post-meta"><span>6 min read</span><button class="save-button" type="button" data-save="javascript-patterns" aria-pressed="false">♡ Save</button></div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80" alt="Code editor on a screen">
+                    <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80" alt="Code editor on a screen">
                 </article>
 
                 <article class="post-card light-tile" data-category="college" data-title="Keeping class projects calm and finished">
@@ -120,11 +114,10 @@
                         <p class="kicker">College</p>
                         <h3>Keeping class projects calm and finished.</h3>
                         <p>Breaking assignments into visible pieces while leaving time for real polish.</p>
-                        <a href="#contact">Talk about it</a>
                         <button class="text-button read-post" type="button" data-read="class-projects">Read article →</button>
                         <div class="post-meta"><span>5 min read</span><button class="save-button" type="button" data-save="class-projects" aria-pressed="false">♡ Save</button></div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80" alt="Books stacked in a library">
+                    <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=1200&q=80" alt="Books stacked in a library">
                 </article>
 
                 <article class="post-card light-tile" data-category="life" data-title="Building better daily routines">
@@ -132,11 +125,10 @@
                         <p class="kicker">Life</p>
                         <h3>Building better daily routines.</h3>
                         <p>A gentle audit of sleep, study blocks, screen time, and habits that actually last.</p>
-                        <a href="#contact">Talk about it</a>
                         <button class="text-button read-post" type="button" data-read="daily-routines">Read article →</button>
                         <div class="post-meta"><span>4 min read</span><button class="save-button" type="button" data-save="daily-routines" aria-pressed="false">♡ Save</button></div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80" alt="Desk with notebook and coffee">
+                    <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80" alt="Desk with notebook and coffee">
                 </article>
 
                 <article class="post-card blue-tile" data-category="code" data-title="Making a page feel fast and focused">
@@ -144,17 +136,16 @@
                         <p class="kicker">Code</p>
                         <h3>Making a page feel fast and focused.</h3>
                         <p>Layout choices, spacing, and simple interactions that help a blog feel premium.</p>
-                        <a href="#contact">Talk about it</a>
                         <button class="text-button read-post" type="button" data-read="fast-focused">Read article →</button>
                         <div class="post-meta"><span>7 min read</span><button class="save-button" type="button" data-save="fast-focused" aria-pressed="false">♡ Save</button></div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Workspace with laptop">
+                    <img loading="lazy" decoding="async" src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80" alt="Workspace with laptop">
                 </article>
             </div>
             <p class="empty-state" id="emptyState" hidden>No posts match that search yet. Try a different keyword.</p>
         </section>
 
-        <section class="platform-panel" id="projects">
+        <section class="platform-panel" id="projects" tabindex="-1">
             <div class="section-heading compact-heading">
                 <div>
                     <p class="kicker">Selected work</p>
@@ -164,21 +155,18 @@
             </div>
             <div class="project-grid">
                 <article class="project-card">
-                    <div class="project-icon">01</div>
                     <p class="kicker">Interface</p>
                     <h3>Focusboard</h3>
                     <p>A calmer home for tasks, study sessions, and the next useful action.</p>
                     <button class="text-button project-details" type="button" data-project="Focusboard">View project details →</button>
                 </article>
                 <article class="project-card project-card-dark">
-                    <div class="project-icon">02</div>
                     <p class="kicker">Writing</p>
                     <h3>Field notes</h3>
                     <p>A tiny publishing system for capturing ideas before they become forgotten tabs.</p>
                     <button class="text-button project-details" type="button" data-project="Field notes">View project details →</button>
                 </article>
                 <article class="project-card">
-                    <div class="project-icon">03</div>
                     <p class="kicker">Learning</p>
                     <h3>Web lab</h3>
                     <p>Experiments in motion, accessibility, performance, and thoughtful frontend details.</p>
@@ -205,70 +193,36 @@
             <h2>Short notes.</h2>
             <div class="notes-list">
                 <article class="note-card">
-                    <span>01</span>
                     <p>Good design is the quiet removal of confusion.</p>
                     <button class="copy-note" type="button">Copy note</button>
                 </article>
                 <article class="note-card">
-                    <span>02</span>
                     <p>The best study session is the one I can repeat tomorrow.</p>
                     <button class="copy-note" type="button">Copy note</button>
                 </article>
                 <article class="note-card">
-                    <span>03</span>
                     <p>Build small, finish honestly, then improve with evidence.</p>
                     <button class="copy-note" type="button">Copy note</button>
                 </article>
             </div>
         </section>
 
-        <section class="newsletter-panel" id="newsletter">
+        <section class="newsletter-panel" id="newsletter" tabindex="-1">
             <div>
                 <p class="kicker">Occasional signal</p>
                 <h2>A thoughtful note, now and then.</h2>
                 <p>No noise. Just new essays, useful links, and small things worth keeping.</p>
             </div>
-            <form class="newsletter-form" id="newsletterForm">
-                <label>
-                    <span class="sr-only">Email address</span>
-                    <input type="email" name="newsletterEmail" placeholder="Your email address" autocomplete="email" required>
-                </label>
-                <button type="submit">Subscribe</button>
-                <p class="form-status" id="newsletterStatus" role="status"></p>
-            </form>
+            <p class="availability">Newsletter signups are currently closed.</p>
         </section>
 
         <section class="contact-panel" id="contact">
             <div class="section-copy">
                 <p class="kicker">Contact</p>
                 <h2>Say hello.</h2>
-                <p>Send a quick note about a project, blog idea, or something interesting you found.</p>
+                <p>Find my projects and profile on GitHub.</p>
+                <div class="link-row"><a href="https://github.com/idhruvbajaj">Find me on GitHub</a></div>
             </div>
-
-            <form class="contact-form" id="contactForm">
-                <label>
-                    Name
-                    <input type="text" name="name" placeholder="Your name" autocomplete="name" required>
-                </label>
-                <label>
-                    Email
-                    <input type="email" name="email" placeholder="you@example.com" autocomplete="email" required>
-                </label>
-                <label>
-                    What are you reaching out about?
-                    <select name="topic">
-                        <option>Project collaboration</option>
-                        <option>Blog idea</option>
-                        <option>Just saying hello</option>
-                    </select>
-                </label>
-                <label>
-                    Message
-                    <textarea name="message" rows="4" placeholder="Write your message" required></textarea>
-                </label>
-                <button type="submit">Send message</button>
-                <p class="form-status" id="formStatus" role="status"></p>
-            </form>
         </section>
     </main>
 
@@ -281,11 +235,11 @@
         </div>
     </footer>
 
-    <button class="back-to-top" id="backToTop" type="button" aria-label="Back to top">↑</button>
+    <button class="back-to-top" id="backToTop" hidden type="button" aria-label="Back to top">↑</button>
 
-    <div class="reading-modal" id="readingModal" hidden>
+    <dialog class="reading-modal" id="readingModal" aria-labelledby="readingTitle">
         <div class="modal-backdrop" data-close-modal></div>
-        <article class="modal-card reading-card" role="dialog" aria-modal="true" aria-labelledby="readingTitle">
+        <article class="modal-card reading-card">
             <button class="modal-close" type="button" data-close-modal aria-label="Close reading view">×</button>
             <p class="kicker" id="readingCategory">Code · 6 min read</p>
             <h2 id="readingTitle">JavaScript patterns I finally understand.</h2>
@@ -296,11 +250,11 @@
                 <button class="text-button" data-close-modal type="button">Close reading view</button>
             </div>
         </article>
-    </div>
+    </dialog>
 
-    <div class="project-modal" id="projectModal" hidden>
+    <dialog class="project-modal" id="projectModal" aria-labelledby="projectTitle">
         <div class="modal-backdrop" data-close-project></div>
-        <article class="modal-card" role="dialog" aria-modal="true" aria-labelledby="projectTitle">
+        <article class="modal-card">
             <button class="modal-close" type="button" data-close-project aria-label="Close project details">×</button>
             <p class="kicker">Project detail</p>
             <h2 id="projectTitle">Focusboard</h2>
@@ -311,26 +265,26 @@
                 <span>Focus <strong>Clarity</strong></span>
             </div>
         </article>
-    </div>
+    </dialog>
 
-    <div class="command-palette" id="commandPalette" hidden>
+    <dialog class="command-palette" id="commandPalette" aria-labelledby="commandTitle">
         <div class="modal-backdrop" data-close-command></div>
-        <div class="palette-card" role="dialog" aria-modal="true" aria-labelledby="commandTitle">
+        <div class="palette-card">
             <div class="palette-heading">
                 <h2 id="commandTitle">Quick actions</h2>
                 <button class="modal-close" type="button" data-close-command aria-label="Close command menu">×</button>
             </div>
-            <input id="commandSearch" type="search" placeholder="Search actions..." autocomplete="off">
+            <input id="commandSearch" type="search" aria-label="Search actions" placeholder="Search actions..." autocomplete="off">
             <div class="command-list" id="commandList">
-                <button type="button" data-command="posts">Browse posts <kbd>P</kbd></button>
-                <button type="button" data-command="projects">View projects <kbd>J</kbd></button>
-                <button type="button" data-command="theme">Toggle theme <kbd>T</kbd></button>
-                <button type="button" data-command="newsletter">Join newsletter <kbd>N</kbd></button>
-                <button type="button" data-command="top">Back to top <kbd>G</kbd></button>
+                <button type="button" data-command="posts">Browse posts</button>
+                <button type="button" data-command="projects">View projects</button>
+                <button type="button" data-command="theme">Toggle theme</button>
+                <button type="button" data-command="newsletter">View newsletter</button>
+                <button type="button" data-command="top">Back to top</button>
             </div>
             <p class="palette-hint">Press <kbd>Esc</kbd> to close · <kbd>⌘ K</kbd> to open</p>
         </div>
-    </div>
+    </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

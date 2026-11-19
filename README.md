@@ -1,6 +1,6 @@
 ## Website addresses
 
-The main public site is https://idhruvbajaj.github.io/. The Vercel homepage redirects there. The admin page stays at https://idhruvbajaj-github-io.vercel.app/admin.html, and the public site loads saved content from the Vercel API. Only `/api/content` permits cross-origin reads from GitHub Pages; admin access stays same-origin.
+The main public site is https://idhruvbajaj.is-a.dev/. The Vercel homepage redirects there. The admin page stays at https://idhruvbajaj-github-io.vercel.app/admin.html, and the public site loads saved content from the Vercel API. Only `/api/content` permits cross-origin reads from the GitHub Pages domain and its custom domain; admin access stays same-origin.
 
 After editing `public/index.html`, `public/style.css`, or `public/script.js`, run `npm run sync-pages` and commit the generated root copies so GitHub Pages publishes the same frontend. Do not replace the root index with a redirect to Vercel, because that would create a redirect loop. The root `.nojekyll` ensures GitHub Pages serves the static files directly.
 
