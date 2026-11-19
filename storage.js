@@ -8,6 +8,7 @@ const contentPath = 'blog/content.json';
 const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 if (process.env.VERCEL && !useBlob) throw new Error('Connect a private Vercel Blob store before deploying.');
 const localRoot = process.env.BLOG_DATA_DIRECTORY || path.join(__dirname, 'data');
+let pendingLocalUpdate = Promise.resolve();
 
 async function read(key) {
     if (useBlob) {
@@ -44,29 +45,37 @@ async function remove(key) {
 }
 
 function createContentStore(defaultContent) {
+    async function updateContent(change) {
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const record = await read(contentPath);
+            const content = record ? record.value : structuredClone(defaultContent);
+            const result = change(content);
+            try {
+                await write(contentPath, content, record?.etag, !record);
+                return result;
+            } catch (error) {
+                // Retry from the latest version instead of discarding another admin's edit.
+                if (error instanceof BlobPreconditionFailedError) continue;
+                if (useBlob && !record && await read(contentPath)) continue;
+                throw error;
+            }
+        }
+        const error = new Error('Content changed while saving. Please try again.');
+        error.status = 409;
+        throw error;
+    }
+
     return {
         async get() {
             const record = await read(contentPath);
             return record ? record.value : structuredClone(defaultContent);
         },
-        async update(change) {
-            for (let attempt = 0; attempt < 5; attempt++) {
-                const record = await read(contentPath);
-                const content = record ? record.value : structuredClone(defaultContent);
-                const result = change(content);
-                try {
-                    await write(contentPath, content, record?.etag, !record);
-                    return result;
-                } catch (error) {
-                    // Retry from the latest version instead of discarding another admin's edit.
-                    if (error instanceof BlobPreconditionFailedError) continue;
-                    if (!record && await read(contentPath)) continue;
-                    throw error;
-                }
-            }
-            const error = new Error('Content changed while saving. Please try again.');
-            error.status = 409;
-            throw error;
+        update(change) {
+            if (useBlob) return updateContent(change);
+            // Local development uses one Node process and has no Blob ETags.
+            const update = pendingLocalUpdate.then(() => updateContent(change));
+            pendingLocalUpdate = update.catch(() => {});
+            return update;
         }
     };
 }
