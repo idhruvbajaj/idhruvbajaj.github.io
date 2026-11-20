@@ -45,12 +45,12 @@
                 <h1 id="heroTitle">Ideas, projects, and notes in one clean place.</h1>
                 <p id="heroDescription">A personal blog for code, college life, routines, and the details I want to remember.</p>
                 <div class="link-row">
-                    <a href="#posts">Read the blog</a>
+                    <a href="#articles">Read the blog <span aria-hidden="true">↘</span></a>
                     <a href="#about">About me</a>
                 </div>
             </div>
             <div class="hero-visual" aria-hidden="true">
-                <img fetchpriority="high" decoding="async" sizes="(max-width: 1160px) 90vw, 1040px" srcset="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&amp;fit=crop&amp;w=480&amp;q=80 480w, https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&amp;fit=crop&amp;w=800&amp;q=80 800w, https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&amp;fit=crop&amp;w=1600&amp;q=80 1600w" src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&amp;fit=crop&amp;w=1600&amp;q=80" alt="">
+                <img src="assets/crt-collage.jpg" width="860" height="860" fetchpriority="high" decoding="async" alt="">
             </div>
         </section>
 
@@ -63,14 +63,11 @@
                     <a href="#articles">Browse articles</a>
                     <a href="#notes">View notes</a>
                 </div>
-                <div class="post-meta">
-                    <button class="save-button" type="button" data-save="rebuilding" aria-pressed="false">♡ Save post</button>
-                </div>
             </div>
             <img loading="lazy" decoding="async" sizes="(max-width: 640px) 90vw, (max-width: 1160px) 45vw, 550px" srcset="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=480&amp;q=80 480w, https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=800&amp;q=80 800w, https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=1400&amp;q=80 1400w" src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&amp;fit=crop&amp;w=1400&amp;q=80" alt="Laptop with code on screen">
         </section>
 
-        <section class="post-showcase" id="articles" aria-label="Blog posts">
+        <section class="post-showcase" id="articles" tabindex="-1" aria-label="Blog posts">
             <div class="section-heading">
                 <h2>Explore by topic.</h2>
                 <div class="filter-row" aria-label="Filter posts by category">
@@ -78,6 +75,7 @@
                     <button class="filter-chip" type="button" aria-pressed="false" data-filter="code">Code</button>
                     <button class="filter-chip" type="button" aria-pressed="false" data-filter="college">College</button>
                     <button class="filter-chip" type="button" aria-pressed="false" data-filter="life">Life</button>
+                    <button class="filter-chip saved-filter" type="button" aria-pressed="false" data-filter="saved"><span aria-hidden="true">♥</span> Saved</button>
                 </div>
             </div>
             <div class="post-tools">
@@ -206,23 +204,25 @@
             </div>
         </section>
 
-        <section class="newsletter-panel" id="newsletter" tabindex="-1">
-            <div>
-                <p class="kicker">Occasional signal</p>
-                <h2>A thoughtful note, now and then.</h2>
-                <p>No noise. Just new essays, useful links, and small things worth keeping.</p>
-            </div>
-            <p class="availability">Newsletter signups are currently closed.</p>
-        </section>
+        <div class="closing-grid">
+            <section class="newsletter-panel" id="newsletter" tabindex="-1">
+                <div>
+                    <p class="kicker">Occasional signal</p>
+                    <h2>A thoughtful note, now and then.</h2>
+                    <p>No noise. Just new essays, useful links, and small things worth keeping.</p>
+                </div>
+                <p class="availability">Newsletter signups are currently closed.</p>
+            </section>
 
-        <section class="contact-panel" id="contact" tabindex="-1">
-            <div class="section-copy">
-                <p class="kicker">Contact</p>
-                <h2>Say hello.</h2>
-                <p>Find my projects and profile on GitHub.</p>
-                <div class="link-row"><a href="https://github.com/idhruvbajaj">Find me on GitHub</a></div>
-            </div>
-        </section>
+            <section class="contact-panel" id="contact" tabindex="-1">
+                <div class="section-copy">
+                    <p class="kicker">Contact</p>
+                    <h2>Say hello.</h2>
+                    <p>Find my projects and profile on GitHub.</p>
+                    <div class="link-row"><a href="https://github.com/idhruvbajaj">Find me on GitHub</a></div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <footer class="site-footer">

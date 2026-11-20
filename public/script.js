@@ -9,9 +9,11 @@ const emptyState = document.getElementById("emptyState");
 const themeToggle = document.getElementById("themeToggle");
 const savedSummary = document.getElementById("savedSummary");
 const saveButtons = document.querySelectorAll(".save-button");
+const articleIds = new Set([...postCards].map(card => card.querySelector("[data-save]").dataset.save));
 const postSort = document.getElementById("postSort");
 const postGrid = document.getElementById("postGrid");
 const readingModal = document.getElementById("readingModal");
+const readingSave = document.getElementById("readingSave");
 const projectModal = document.getElementById("projectModal");
 const commandPalette = document.getElementById("commandPalette");
 const commandSearch = document.getElementById("commandSearch");
@@ -39,7 +41,7 @@ function writePreference(key, value) {
 
 const storedPosts = readPreference("savedPosts", []);
 let savedPosts = Array.isArray(storedPosts)
-    ? [...new Set(storedPosts.filter(id => typeof id === "string"))]
+    ? [...new Set(storedPosts.filter(id => articleIds.has(id)))]
     : [];
 let toastTimer;
 
@@ -166,7 +168,9 @@ function applyPostFilters() {
     let visibleCount = 0;
 
     postCards.forEach((card) => {
-        const matchesFilter = activeFilter === "all" || card.dataset.category === activeFilter;
+        const matchesFilter = activeFilter === "saved"
+            ? savedPosts.includes(card.querySelector("[data-save]").dataset.save)
+            : activeFilter === "all" || card.dataset.category === activeFilter;
         const summary = card.querySelector(".post-content p:not(.kicker)").textContent;
         const matchesSearch = !query || `${card.dataset.title} ${summary}`.toLowerCase().includes(query);
         const shouldShow = matchesFilter && matchesSearch;
@@ -177,6 +181,9 @@ function applyPostFilters() {
 
     postCount.textContent = `${visibleCount} ${visibleCount === 1 ? "post" : "posts"}`;
     emptyState.hidden = visibleCount > 0;
+    emptyState.textContent = activeFilter === "saved" && !savedPosts.length
+        ? "No saved posts yet. Tap Save on any article to keep it here."
+        : "No posts match. Try a different topic or search term.";
 }
 
 function sortPosts() {
@@ -227,6 +234,12 @@ saveButtons.forEach((button) => {
             : [...savedPosts, postId];
         writePreference("savedPosts", savedPosts);
         updateSavedState();
+        if (activeFilter === "saved") {
+            if (button.closest(".post-card")) {
+                siteTopics.querySelector('[data-filter="saved"]').focus();
+            }
+            applyPostFilters();
+        }
     });
 });
 
@@ -275,6 +288,9 @@ function openModal(modal, trigger) {
 dialogs.forEach((modal) => {
     modal.addEventListener("close", () => {
         document.body.classList.toggle("modal-open", dialogs.some(dialog => dialog.open));
+        if (modal === readingModal && activeFilter === "saved" && !savedPosts.includes(readingSave.dataset.save)) {
+            siteTopics.querySelector('[data-filter="saved"]').focus();
+        }
     });
 });
 
@@ -291,7 +307,7 @@ document.querySelectorAll(".read-post").forEach((button) => {
             return paragraph;
         });
         document.getElementById("readingBody").replaceChildren(...paragraphs);
-        document.getElementById("readingSave").dataset.save = button.dataset.read;
+        readingSave.dataset.save = button.dataset.read;
         updateSavedState();
         openModal(readingModal, button);
     });
@@ -355,11 +371,12 @@ function openCommandPalette(event) {
     commandSearch.value = "";
     filterCommands();
     openModal(commandPalette, event?.currentTarget);
+    if (!event && commandPalette.open) commandSearch.focus();
 }
 
 function runCommand(command) {
     const targets = {
-        posts: "#posts",
+        posts: "#articles",
         projects: "#projects",
         newsletter: "#newsletter",
         top: "#home"
@@ -384,7 +401,9 @@ commandSearch.addEventListener("input", filterCommands);
 commandSearch.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     const visibleCommands = commandButtons.filter(button => !button.hidden);
-    if (visibleCommands.length === 1) visibleCommands[0].click();
+    if (visibleCommands.length !== 1) return;
+    event.preventDefault();
+    visibleCommands[0].click();
 });
 
 window.addEventListener("scroll", updateProgressBar, { passive: true });
